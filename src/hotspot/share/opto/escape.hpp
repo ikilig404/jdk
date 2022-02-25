@@ -636,7 +636,17 @@ public:
   bool add_final_edges_unsafe_access(Node* n, uint opcode);
 
 #ifndef PRODUCT
+  static int _no_escape_counter;
+  static int _arg_escape_counter;
+  static int _global_escape_counter;
+  int _prev_no_escape;
+  int _prev_arg_escape;
+  int _prev_global_escape;
+  static double _time_elapsed;
   void dump(GrowableArray<PointsToNode*>& ptnodes_worklist);
+  static void print_statistics();
+  void update_escape_state(int eliminated);
+  void escape_state_statistics(GrowableArray<JavaObjectNode*>& java_objects_worklist);
 #endif
 };
 

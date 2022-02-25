@@ -254,6 +254,8 @@ void Compile::print_statistics() {
     PhaseOutput::print_statistics();
     PhasePeephole::print_statistics();
     PhaseIdealLoop::print_statistics();
+    ConnectionGraph::print_statistics();
+    PhaseMacroExpand::print_statistics();
     if (xtty != NULL)  xtty->tail("statistics");
   }
   if (_intrinsic_hist_flags[as_int(vmIntrinsics::_none)] != 0) {
@@ -2188,11 +2190,17 @@ void Compile::Optimize() {
       if (failing())  return;
 
       if (congraph() != NULL && macro_count() > 0) {
+#ifndef PRODUCT
+        int _prev_scalar_replaced = PhaseMacroExpand::_objs_scalar_replaced_counter;
+#endif
         TracePhase tp("macroEliminate", &timers[_t_macroEliminate]);
         PhaseMacroExpand mexp(igvn);
         mexp.eliminate_macro_nodes();
         igvn.set_delay_transform(false);
 
+#ifndef PRODUCT
+        congraph()->update_escape_state(PhaseMacroExpand::_objs_scalar_replaced_counter - _prev_scalar_replaced);
+#endif
         igvn.optimize();
         print_method(PHASE_ITER_GVN_AFTER_ELIMINATION, 2);
 
